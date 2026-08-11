@@ -1,4 +1,4 @@
-import { log, printCallStack } from "./logger.js";
+import { log, printCallStack } from "../logger.js";
 import ObjC from "frida-objc-bridge";
 
 export function KISInterfaceDebugUSBClass():void

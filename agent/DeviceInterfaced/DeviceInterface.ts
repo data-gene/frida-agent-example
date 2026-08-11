@@ -1,4 +1,4 @@
-import { log, printCallStack } from "./logger";
+import { log, printCallStack } from "../logger";
 
 export function DeviceInterfaceCommon():void
 {
