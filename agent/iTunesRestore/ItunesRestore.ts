@@ -1,5 +1,5 @@
 import { WS2_32 } from "../Windows/WS2_32";
-import { MobileDevice } from "./MobileDevice";
+import { MobileDevice } from "./MobileDeviceDll";
 
 export function ItunesRestore():void
 {

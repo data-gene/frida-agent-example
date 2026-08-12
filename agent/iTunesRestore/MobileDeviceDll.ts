@@ -1,29 +1,10 @@
 import { kPrintSize,log, printCallStack } from "../logger";
+import { CFStringToUtf8 } from "./CoreFoundationDll";
+
 
 export function MobileDevice():void
 {
-    const kCFStringEncodingASCII = 0x0600;
-    const kCFStringEncodingUTF8 = 0x08000100;
-
     const MobileDeviceBase = Process.getModuleByName("MobileDevice.dll").base;
-    const CFStringGetCStringPtr = new NativeFunction(Module.getGlobalExportByName('CFStringGetCStringPtr'),'pointer', ['pointer', 'uint32']);
-    const CFStringGetCString = new NativeFunction(Module.getGlobalExportByName('CFStringGetCString'),'int', ['pointer', 'pointer', 'int', 'uint32']);    
-    const CFStringGetLength = new NativeFunction(Module.getGlobalExportByName('CFStringGetLength'),'int', ['pointer']);
-    const CFShow = new NativeFunction(Module.getGlobalExportByName('CFShow'),'pointer', ['pointer']);
-
-    function cfStringToUtf8(cfString: NativePointer): string | null {
-        if (cfString.isNull()) return null;
-        var length = CFStringGetLength(cfString);
-        // 每个字符最多 4 字节 UTF-8 + 终止符
-        var bufferSize = length * 4 + 1;
-        var buffer = Memory.alloc(bufferSize);
-        var success = CFStringGetCString(cfString, buffer, bufferSize, kCFStringEncodingUTF8);
-        if (success) {
-            return buffer.readUtf8String();
-        }
-            
-        return null;
-    }
 
     // USB operations
     // const AMRUSBInterfaceReadPipe = MobileDeviceBase.add(0x231CD0);
@@ -39,7 +20,7 @@ export function MobileDevice():void
     Interceptor.attach(AMRecoveryModeDeviceCopyEnvironmentVariableFromDevice, {
         onEnter(args) {
             //CFShow(args[1]);
-            log(`--->AMRecoveryModeDeviceCopyEnvironmentVariableFromDevice(device=${args[0]}, envkey=${cfStringToUtf8(args[1])})`);
+            log(`--->AMRecoveryModeDeviceCopyEnvironmentVariableFromDevice(device=${args[0]}, envkey=${CFStringToUtf8(args[1])})`);
         },
         onLeave(retval) {}
     });
@@ -98,7 +79,7 @@ export function MobileDevice():void
     //service
     Interceptor.attach(Module.getGlobalExportByName("AMDeviceSecureStartService"), {
         onEnter(args) {
-            log(`--->AMDeviceSecureStartService(device=${args[0]}, service=${cfStringToUtf8(args[1])})`);
+            log(`--->AMDeviceSecureStartService(device=${args[0]}, service=${CFStringToUtf8(args[1])})`);
         },
         onLeave(retval) {}
     });
