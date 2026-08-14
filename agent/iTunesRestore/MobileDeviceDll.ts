@@ -1,76 +1,129 @@
 import { kPrintSize,log, printCallStack } from "../logger";
-import { CFStringToUtf8 } from "./CoreFoundationDll";
+import { CFStringToUtf8, PrintCFDictionary } from "./CoreFoundationDll";
 
 
 export function MobileDevice():void
 {
+    const Tag = MobileDevice.name;
     const MobileDeviceBase = Process.getModuleByName("MobileDevice.dll").base;
-
+    const AMRecoveryModeDeviceCopyEnvironmentVariableFromDevice = MobileDeviceBase.add(0x214D00);
+    
     // USB operations
     // const AMRUSBInterfaceReadPipe = MobileDeviceBase.add(0x231CD0);
     // Interceptor.attach(AMRUSBInterfaceReadPipe, {
     //     onEnter(args) {
-    //         log(`--->AMRUSBInterfaceReadPipe(h=${args[0]}, code=${args[1]}, buffer=${args[2]}, bufferSize=${args[3]}`);
+    //         log(`AMRUSBInterfaceReadPipe(h=${args[0]}, code=${args[1]}, buffer=${args[2]}, bufferSize=${args[3]}`);
     //         printCallStack(this.context);
     //     },
     //     onLeave(retval) {}
     // });
 
-    const AMRecoveryModeDeviceCopyEnvironmentVariableFromDevice = MobileDeviceBase.add(0x214D00);
+    // recovery functions
     Interceptor.attach(AMRecoveryModeDeviceCopyEnvironmentVariableFromDevice, {
         onEnter(args) {
-            //CFShow(args[1]);
-            log(`--->AMRecoveryModeDeviceCopyEnvironmentVariableFromDevice(device=${args[0]}, envkey=${CFStringToUtf8(args[1])})`);
+            log(`[${Tag}]: AMRecoveryModeDeviceCopyEnvironmentVariableFromDevice(device=${args[0]}, var=${CFStringToUtf8(args[1])})`);
         },
         onLeave(retval) {}
     });
+    Interceptor.attach(Module.getGlobalExportByName("AMRestorableDeviceSendFile"), {
+        onEnter(args) {
+            log(`[${Tag}]: AMRestorableDeviceSendFile(device=${args[0]}, file=${CFStringToUtf8(args[1])})`);
+        },
+        onLeave(retval) {}
+    });    
+    Interceptor.attach(Module.getGlobalExportByName("AMRestorableDeviceSendCommand"), {
+        onEnter(args) {
+            log(`[${Tag}]: AMRestorableDeviceSendCommand(device=${args[0]}, command=${CFStringToUtf8(args[1])})`);
+        },
+        onLeave(retval) {}
+    });
+    Interceptor.attach(Module.getGlobalExportByName("AMRestorableDeviceSendBlindCommand"), {
+        onEnter(args) {
+            log(`[${Tag}]: AMRestorableDeviceSendBlindCommand(device=${args[0]}, command=${CFStringToUtf8(args[1])})`);
+        },
+        onLeave(retval) {}
+    });
+    Interceptor.attach(Module.getGlobalExportByName("AMRecoveryModeDeviceSendCommandToDevice"), {
+        onEnter(args) {
+            log(`[${Tag}]: AMRecoveryModeDeviceSendCommandToDevice(device=${args[0]}, command=${CFStringToUtf8(args[1])})`);
+        },
+        onLeave(retval) {}
+    });    
+    Interceptor.attach(Module.getGlobalExportByName("AMRecoveryModeDeviceSendBlindCommandToDevice"), {
+        onEnter(args) {
+            log(`[${Tag}]: AMRecoveryModeDeviceSendBlindCommandToDevice(device=${args[0]}, command=${CFStringToUtf8(args[1])})`);
+        },
+        onLeave(retval) {}
+    });   
+    Interceptor.attach(Module.getGlobalExportByName("AMRecoveryModeDeviceSendFileToDevice"), {
+        onEnter(args) {
+            log(`[${Tag}]: AMRecoveryModeDeviceSendFileToDevice(device=${args[0]}, file=${CFStringToUtf8(args[1])})`);
+        },
+        onLeave(retval) {}
+    });   
 
     //device,options,cbProgress,userInfo
     Interceptor.attach(Module.getGlobalExportByName("AMRestorePerformRecoveryModeRestore"), {
         onEnter(args) {
-            log(`--->AMRestorePerformRecoveryModeRestore`);
+            log(`[${Tag}]: AMRestorePerformRecoveryModeRestore`);
         },
         onLeave(retval) {}
     });
-   
+    Interceptor.attach(Module.getGlobalExportByName("AMRestoreCreateDefaultOptions"), {
+        onEnter(args) {
+            log(`[${Tag}]: AMRestoreCreateDefaultOptions`);
+        },
+        onLeave(retval) {
+             log(`[${Tag}]: AMRestoreCreateDefaultOptions returned: ${PrintCFDictionary(retval)}`);
+        }
+    });
+    Interceptor.attach(Module.getGlobalExportByName("AMRestorableDeviceCopyDefaultRestoreOptions"), {
+        onEnter(args) {
+            log(`[${Tag}]: AMRestorableDeviceCopyDefaultRestoreOptions`);
+        },
+        onLeave(retval) {
+             log(`[${Tag}]: AMRestorableDeviceCopyDefaultRestoreOptions returned: ${PrintCFDictionary(retval)}`);
+        }
+    });
+    //socket 
     Interceptor.attach(Module.getGlobalExportByName("AMDServiceConnectionSend"), {
         onEnter(args) {
-            log(`--->AMDServiceConnectionSend(con=${args[0]}, data=${args[1]}),size=${args[2]}`);
+            log(`[${Tag}]: AMDServiceConnectionSend(con=${args[0]}, data=${args[1]}),size=${args[2]}`);
             var size = args[2].toInt32()>kPrintSize ? kPrintSize : args[2].toInt32();
             log(`\n${hexdump(args[1], {length: size})}`);
         },
-        onLeave(retval) {log(`--->AMDServiceConnectionSend returned: ${retval}`);}
+        onLeave(retval) {log(`[${Tag}]: AMDServiceConnectionSend returned: ${retval}`);}
     });
     Interceptor.attach(Module.getGlobalExportByName("AMDServiceConnectionSendMessage"), {
         onEnter(args) {
-            log(`--->AMDServiceConnectionSendMessage(con=${args[0]}, plist=${args[1]}),format=${args[2]}`);
+            log(`[${Tag}]: AMDServiceConnectionSendMessage(con=${args[0]}, plist=${args[1]}),format=${args[2]}`);
             var size = args[2].toInt32()>kPrintSize ? kPrintSize : args[2].toInt32();
             log(`\n${hexdump(args[1], {length: size})}`);
         },
-        onLeave(retval) {log(`--->AMDServiceConnectionSendMessage returned: ${retval}`);}
+        onLeave(retval) {log(`[${Tag}]: AMDServiceConnectionSendMessage returned: ${retval}`);}
     });
     Interceptor.attach(Module.getGlobalExportByName("AMDServiceConnectionReceive"), {
         onEnter(args) {
-            log(`--->AMDServiceConnectionReceive(con=${args[0]}, data=${args[1]}),size=${args[2]}`);
+            log(`[${Tag}]: AMDServiceConnectionReceive(con=${args[0]}, data=${args[1]}),size=${args[2]}`);
             this.conn = args[0];
             this.data = args[1];
             this.size = args[2];
         },
         onLeave(retval) {
-            log(`--->AMDServiceConnectionReceive returned: ${retval}`);
+            log(`[${Tag}]: AMDServiceConnectionReceive returned: ${retval}`);
             var size = this.size.toInt32()>kPrintSize ? kPrintSize : this.size.toInt32();
             log(`\n${hexdump(this.data, {length: size})}`);
         }
     });
     Interceptor.attach(Module.getGlobalExportByName("AMDServiceConnectionReceiveMessage"), {
         onEnter(args) {
-            log(`--->AMDServiceConnectionReceiveMessage(con=${args[0]}, plist=${args[1]}),format=${args[2]}`);
+            log(`[${Tag}]: AMDServiceConnectionReceiveMessage(con=${args[0]}, plist=${args[1]}),format=${args[2]}`);
             this.conn = args[0];
             this.data = args[1];
             this.size = args[2];
         },
         onLeave(retval) {
-            log(`--->AMDServiceConnectionReceiveMessage returned: ${retval}`);
+            log(`[${Tag}]: AMDServiceConnectionReceiveMessage returned: ${retval}`);
             var size = this.size.toInt32()>kPrintSize ? kPrintSize : this.size.toInt32();
             log(`\n${hexdump(this.data, {length: size})}`);
         }
@@ -79,22 +132,22 @@ export function MobileDevice():void
     //service
     Interceptor.attach(Module.getGlobalExportByName("AMDeviceSecureStartService"), {
         onEnter(args) {
-            log(`--->AMDeviceSecureStartService(device=${args[0]}, service=${CFStringToUtf8(args[1])})`);
+            log(`[${Tag}]: AMDeviceSecureStartService(device=${args[0]}, service=${CFStringToUtf8(args[1])})`);
         },
         onLeave(retval) {}
     });
 
     //RPSocket
     Interceptor.attach(Module.getGlobalExportByName("RPSocksServerCreateWithAddress"), {
-        onEnter(args) {log(`--->RPSocksServerCreateWithAddress(sockaddr=${args[0]})`);},
+        onEnter(args) {log(`[${Tag}]: RPSocksServerCreateWithAddress(sockaddr=${args[0]})`);},
         onLeave(retval) {}
     });
     Interceptor.attach(Module.getGlobalExportByName("RPSocksProxyCreateConnectionWithSocket"), {
-        onEnter(args) {log(`--->RPSocksProxyCreateConnectionWithSocket(sockaddr=${args[0]})`);},
+        onEnter(args) {log(`[${Tag}]: RPSocksProxyCreateConnectionWithSocket(sockaddr=${args[0]})`);},
         onLeave(retval) {}
     });
     Interceptor.attach(Module.getGlobalExportByName("RPSocksProxyStart"), {
-        onEnter(args) {log(`--->RPSocksProxyStart(sockaddr=${args[0]})`);},
+        onEnter(args) {log(`[${Tag}]: RPSocksProxyStart(sockaddr=${args[0]})`);},
         onLeave(retval) {}
     });
 }
