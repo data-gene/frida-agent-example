@@ -16,6 +16,8 @@ function FindSubArray(haystack: Uint8Array, needle: Uint8Array): boolean {
     return false;
 }
 
+const g_log_dir = 'D:/dump1';
+
 export function WS2_32(): void {
     let Tag = WS2_32.name;
     let g_send_idx = 0;
@@ -32,16 +34,17 @@ export function WS2_32(): void {
                 if (
                     arrData[0] == 0x3c && arrData[1] == 0x3f && arrData[2] == 0x78 && arrData[3] == 0x6d && arrData[4] == 0x6c && arrData[5] == 0x20
                     || (
-                        arrData[0] == 0x62 && arrData[1] == 0x70 && arrData[2] == 0x6c && arrData[3] == 0x69 && arrData[4] == 0x73 && arrData[5] == 0x74 && arrData[6] == 0x30 && arrData[7] == 0x30
-                        && arrData[8] != 0xd2 && arrData[9] != 0x01 && arrData[10] != 0x02 && arrData[11] != 0x03 && arrData[12] != 0x04
-                        && arrData[13] != 0x58 && arrData[14] != 0x44 && arrData[15] != 0x61 && arrData[16] != 0x74 && arrData[17] != 0x61
-                        && arrData[18] != 0x53 && arrData[19] != 0x69 && arrData[20] != 0x7a && arrData[21] != 0x65
+                        arrData[0] == 0x62 && arrData[1] == 0x70 && arrData[2] == 0x6c && arrData[3] == 0x69 && arrData[4] == 0x73 && arrData[5] == 0x74 
+                        && arrData[6] == 0x30 && arrData[7] == 0x30
+                        //&& arrData[8] != 0xd2 && arrData[9] != 0x01 && arrData[10] != 0x02 && arrData[11] != 0x03 && arrData[12] != 0x04
+                        //&& arrData[13] != 0x58 && arrData[14] != 0x44 && arrData[15] != 0x61 && arrData[16] != 0x74 && arrData[17] != 0x61
+                        //&& arrData[18] != 0x53 && arrData[19] != 0x69 && arrData[20] != 0x7a && arrData[21] != 0x65
                     )
                 ) {
                     g_send_idx++;
                     var size = args[2].toInt32() > kPrintSize ? kPrintSize : args[2].toInt32();
                     log(`[SEND ${g_send_idx}]\n${hexdump(args[1], { length: size })}`);
-                    File.writeAllBytes(`D:/dump/send${g_send_idx}.plist`, fullData);
+                    File.writeAllBytes(`${g_log_dir}/send${g_send_idx}.plist`, fullData);
                 }
             }
         },
@@ -66,7 +69,7 @@ export function WS2_32(): void {
                     g_recv_idx++;
                     var size = this.size.toInt32() > kPrintSize ? kPrintSize : this.size.toInt32();
                     log(`[${Tag}]: [RECV ${g_recv_idx}]\n${hexdump(this.data, { length: size })}`);
-                    File.writeAllBytes(`D:/dump/recv${g_recv_idx}.plist`, fullData);
+                    File.writeAllBytes(`${g_log_dir}/recv${g_recv_idx}.plist`, fullData);
                 }
             }
         }
