@@ -16,7 +16,7 @@ function FindSubArray(haystack: Uint8Array, needle: Uint8Array): boolean {
     return false;
 }
 
-const g_log_dir = 'D:/dump1';
+const g_log_dir = 'D:/dump';
 
 export function WS2_32(): void {
     let Tag = WS2_32.name;
@@ -27,7 +27,7 @@ export function WS2_32(): void {
     //socket
     Interceptor.attach(Module.getGlobalExportByName("send"), {
         onEnter(args) {
-            log(`[${Tag}]: send(fd=${args[0]}, data=${args[1]}),size=${args[2]}`);
+            //log(`[${Tag}]: send(fd=${args[0]}, data=${args[1]}),size=${args[2]}`);
             const fullData = args[1].readByteArray(args[2].toInt32());
             if (fullData && args[2].toInt32() > 16) {
                 let arrData = new Uint8Array(fullData);
@@ -58,7 +58,7 @@ export function WS2_32(): void {
             this.size = args[2];
         },
         onLeave(retval) {
-            log(`[${Tag}]: recv returned= ${retval},fd=${this.fd}, data=${this.data}, size=${this.size}`);
+            //log(`[${Tag}]: recv returned= ${retval},fd=${this.fd}, data=${this.data}, size=${this.size}`);
             const fullData = this.data.readByteArray(this.size.toInt32());
             if (fullData && this.size.toInt32() > 16) {
                 let arrData = new Uint8Array(fullData);

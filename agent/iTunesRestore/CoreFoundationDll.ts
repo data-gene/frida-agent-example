@@ -5,17 +5,21 @@ const kCFStringEncodingUTF8 = 0x08000100;
 
 const kCFNumberSInt32Type = 3;
 const kCFNumberSInt64Type = 4;
-// string
+// 字符串操作系列API
 const CFStringGetCStringPtr = new NativeFunction(Module.getGlobalExportByName('CFStringGetCStringPtr'), 'pointer', ['pointer', 'int']);
 const CFStringGetCString = new NativeFunction(Module.getGlobalExportByName('CFStringGetCString'), 'int', ['pointer', 'pointer', 'int', 'int']);
 const CFStringGetLength = new NativeFunction(Module.getGlobalExportByName('CFStringGetLength'), 'int', ['pointer']);
 const CFShow = new NativeFunction(Module.getGlobalExportByName('CFShow'), 'pointer', ['pointer']);
 
-// 1. 获取 Core Foundation 字典操作相关的函数指针
-export const CFDictionaryGetValue = new NativeFunction(Module.getGlobalExportByName("CFDictionaryGetValue"), 'pointer', ['pointer', 'pointer']);
+// 字典操作系列API
+const CFDictionaryGetValue = new NativeFunction(Module.getGlobalExportByName("CFDictionaryGetValue"), 'pointer', ['pointer', 'pointer']);
 const CFDictionaryGetCount = new NativeFunction(Module.getGlobalExportByName("CFDictionaryGetCount"), 'int', ['pointer']);
 const CFDictionaryGetKeysAndValues = new NativeFunction(Module.getGlobalExportByName("CFDictionaryGetKeysAndValues"), 'void', ['pointer', 'pointer', 'pointer']);
 
+const CFCopyDescription = new NativeFunction(Module.getGlobalExportByName("CFCopyDescription"),'pointer', ['pointer']);
+const CFRelease = new NativeFunction(Module.getGlobalExportByName("CFRelease"),'void', ['pointer']);
+
+// CFTypeID系列API
 const CFGetTypeID = new NativeFunction(Module.getGlobalExportByName("CFGetTypeID"), 'ulong', ['pointer']);
 const CFStringGetTypeID = new NativeFunction(Module.getGlobalExportByName("CFStringGetTypeID"), 'ulong', []);
 const CFBooleanGetTypeID = new NativeFunction(Module.getGlobalExportByName("CFBooleanGetTypeID"), 'ulong', []);
@@ -23,9 +27,11 @@ const CFNumberGetTypeID = new NativeFunction(Module.getGlobalExportByName("CFNum
 const CFArrayGetTypeID = new NativeFunction(Module.getGlobalExportByName("CFArrayGetTypeID"), 'ulong', []);
 const CFDictionaryGetTypeID = new NativeFunction(Module.getGlobalExportByName("CFDictionaryGetTypeID"), 'ulong', []);
 
+// CF类型转C语言类型
 const CFBooleanGetValue = new NativeFunction(Module.getGlobalExportByName("CFBooleanGetValue"), 'int', ['pointer']);
 const CFNumberGetValue = new NativeFunction(Module.getGlobalExportByName("CFNumberGetValue"), 'int', ['pointer', 'int', 'pointer']);
 
+// 日志前缀
 const Tag = 'CoreFoundationDll';
 
 export function CFTypeToUtf8(inCFTypeRef: NativePointer): string | null {
@@ -66,11 +72,15 @@ export function CFTypeToUtf8(inCFTypeRef: NativePointer): string | null {
                 return `[${Tag}]: kCFNumberSInt32Type Not Implemented`;
 
             case CFArrayGetTypeID():
-                return `[${Tag}]: CFrray Not Implemented`
-
             case CFDictionaryGetTypeID():
-                return `[${Tag}]: CFDictionaryGetTypeID Not Implemented`
-
+                const descRef = CFCopyDescription(inCFTypeRef);
+                if (!descRef.isNull()) {
+                    const result = CFTypeToUtf8(descRef); // 递归调用转换 CFString
+                    CFRelease(descRef); // 释放描述字符串
+                    return result;
+                }else{
+                    return `[${Tag}]: typeID=${typeID} descRef is Null`;
+                }
             default:
                 return `[${Tag}]: Unparsed typeID=${typeID}`;
         }

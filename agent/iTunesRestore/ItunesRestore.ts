@@ -3,6 +3,6 @@ import { MobileDevice } from "./MobileDeviceDll";
 
 export function ItunesRestore():void
 {
-    //MobileDevice();
-    WS2_32();
+    MobileDevice();
+    //WS2_32();
 }
