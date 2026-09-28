@@ -40,7 +40,7 @@ export function CFTypeToUtf8(inCFTypeRef: NativePointer): string | null {
     }
 
     try {
-        var typeID = CFGetTypeID(inCFTypeRef);
+        const typeID = CFGetTypeID(inCFTypeRef);
         switch (typeID) {
             case CFStringGetTypeID():
                 var cStrPtr = CFStringGetCStringPtr(inCFTypeRef, kCFStringEncodingUTF8);
@@ -50,6 +50,7 @@ export function CFTypeToUtf8(inCFTypeRef: NativePointer): string | null {
                 var length = CFStringGetLength(inCFTypeRef);
                 // 每个字符最多 4 字节 UTF-8 + 终止符
                 var bufferSize = length * 4 + 1;
+                //log(`[${Tag}]: inCFString Length=${bufferSize}`);
                 var buffer = Memory.alloc(bufferSize);
                 var success = CFStringGetCString(inCFTypeRef, buffer, bufferSize, kCFStringEncodingUTF8);
                 if (success) {
@@ -58,25 +59,25 @@ export function CFTypeToUtf8(inCFTypeRef: NativePointer): string | null {
                     return null;
 
             case CFBooleanGetTypeID():
-                var boolValue = CFBooleanGetValue(inCFTypeRef);
-                return boolValue ? "true" : "false";
+                // var boolValue = CFBooleanGetValue(inCFTypeRef);
+                // return boolValue ? "true" : "false";
 
             case CFNumberGetTypeID():
-                // 尝试作为 64 位整数读取
-                var numBuffer = Memory.alloc(8);
-                var success = CFNumberGetValue(inCFTypeRef, kCFNumberSInt64Type, numBuffer);
-                if (success !== 0) {
-                    return numBuffer.readS64().toString();
-                }
-                // 如果失败，可以尝试作为 32 位整数或浮点数读取
-                return `[${Tag}]: kCFNumberSInt32Type Not Implemented`;
+                // // 尝试作为 64 位整数读取
+                // var numBuffer = Memory.alloc(8);
+                // var success = CFNumberGetValue(inCFTypeRef, kCFNumberSInt64Type, numBuffer);
+                // if (success !== 0) {
+                //     return numBuffer.readS64().toString();
+                // }
+                // // 如果失败，可以尝试作为 32 位整数或浮点数读取
+                // return `[${Tag}]: kCFNumberSInt32Type Not Implemented`;
 
             case CFArrayGetTypeID():
             case CFDictionaryGetTypeID():
-                const descRef = CFCopyDescription(inCFTypeRef);
-                if (!descRef.isNull()) {
-                    const result = CFTypeToUtf8(descRef); // 递归调用转换 CFString
-                    CFRelease(descRef); // 释放描述字符串
+                const descCFString = CFCopyDescription(inCFTypeRef);
+                if (!descCFString.isNull()) {
+                    var result = CFTypeToUtf8(descCFString); // 递归调用转换 CFString
+                    CFRelease(descCFString); // 释放描述字符串
                     return result;
                 }else{
                     return `[${Tag}]: typeID=${typeID} descRef is Null`;
@@ -95,29 +96,25 @@ export function PrintCFDictionary(inCFDictionaryRef: NativePointer): void {
     }
 
     // 获取字典中键值对的数量
-    var count = CFDictionaryGetCount(inCFDictionaryRef);
-    log(`[${Tag}]: [*] 字典包含 ${count} 个键值对`);
+    log(`[${Tag}]: ${CFTypeToUtf8(inCFDictionaryRef)}`);
 
-    if (count === 0) {
-        return;
-    }
 
-    // 分配内存来存储键和值的指针数组
-    var keysPtr = Memory.alloc(count * Process.pointerSize);
-    var valuesPtr = Memory.alloc(count * Process.pointerSize);
+    // // 分配内存来存储键和值的指针数组
+    // var keysPtr = Memory.alloc(count * Process.pointerSize);
+    // var valuesPtr = Memory.alloc(count * Process.pointerSize);
 
-    // 获取所有键和值
-    CFDictionaryGetKeysAndValues(inCFDictionaryRef, keysPtr, valuesPtr);
+    // // 获取所有键和值
+    // CFDictionaryGetKeysAndValues(inCFDictionaryRef, keysPtr, valuesPtr);
 
-    // 遍历并打印每个键值对
-    for (var i = 0; i < count; i++) {
-        var keyPtr = keysPtr.add(i * Process.pointerSize).readPointer();
-        var valuePtr = valuesPtr.add(i * Process.pointerSize).readPointer();
+    // // 遍历并打印每个键值对
+    // for (var i = 0; i < count; i++) {
+    //     var keyPtr = keysPtr.add(i * Process.pointerSize).readPointer();
+    //     var valuePtr = valuesPtr.add(i * Process.pointerSize).readPointer();
 
-        // 将 CFStringRef 转为 JavaScript 字符串
-        var keyStr = CFTypeToUtf8(keyPtr);
-        var valueStr = CFTypeToUtf8(valuePtr);
+    //     // 将 CFStringRef 转为 JavaScript 字符串
+    //     var keyStr = CFTypeToUtf8(keyPtr);
+    //     var valueStr = CFTypeToUtf8(valuePtr);
 
-        log(`[${Tag}]: [${i}] ${keyStr} = ${valueStr}`);
-    }
+    //     log(`[${Tag}]: [${i}] ${keyStr} = ${valueStr}`);
+    // }
 }

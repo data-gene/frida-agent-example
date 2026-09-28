@@ -1,4 +1,4 @@
-import { kPrintSize, log, printCallStack } from "../logger";
+import { kPrintSize, log } from "../logger";
 import { CFTypeToUtf8, PrintCFDictionary } from "./CoreFoundationDll";
 
 
@@ -12,13 +12,12 @@ export function MobileDevice(): void {
     const restore_handle_async_data_request = MobileDeviceBase.add(0x220ED0);
     const cf_recv_send_command = MobileDeviceBase.add(0x215D10);
     const cf_setenv = MobileDeviceBase.add(0x216580);
-
+    const recovery_send_component_and_command = MobileDeviceBase.add(0x215270);
     // USB operations
     // const AMRUSBInterfaceReadPipe = MobileDeviceBase.add(0x231CD0);
     // Interceptor.attach(AMRUSBInterfaceReadPipe, {
     //     onEnter(args) {
     //         log(`AMRUSBInterfaceReadPipe(h=${args[0]}, code=${args[1]}, buffer=${args[2]}, bufferSize=${args[3]}`);
-    //         printCallStack(this.context);
     //     },
     //     onLeave(retval) {}
     // });
@@ -43,6 +42,12 @@ export function MobileDevice(): void {
     });
 
     // recovery functions
+    Interceptor.attach(recovery_send_component_and_command, {
+        onEnter(args) {
+            log(`[${Tag}]: recovery_send_component_and_command(key=${CFTypeToUtf8(args[2])}})`);
+        },
+        onLeave(retval) { }
+    });    
     Interceptor.attach(cf_setenv, {
         onEnter(args) {
             log(`[${Tag}]: cf_setenv(inDict1=${CFTypeToUtf8(args[1])},\ninDict2=${CFTypeToUtf8(args[2])})`);
@@ -58,7 +63,7 @@ export function MobileDevice(): void {
 
     Interceptor.attach(AMRecoveryModeDeviceCopyEnvironmentVariableFromDevice, {
         onEnter(args) {
-            log(`[${Tag}]: AMRecoveryModeDeviceCopyEnvironmentVariableFromDevice(device=${args[0]}, var=${CFTypeToUtf8(args[1])})`);
+            log(`[${Tag}]: AMRecoveryModeDeviceCopyEnvironmentVariableFromDevice(device=${args[0]}, cmd=${CFTypeToUtf8(args[1])})`);
         },
         onLeave(retval) { }
     });
@@ -104,14 +109,14 @@ export function MobileDevice(): void {
         onEnter(args) {
             log(`[${Tag}]: AMRestorePerformRecoveryModeRestore(inDict=${CFTypeToUtf8(args[1])})`);
         },
-        onLeave(retval) { }
+        onLeave(retval) {log(`[${Tag}]: AMRestorePerformRecoveryModeRestore Leave======>`); }
     });
     Interceptor.attach(Module.getGlobalExportByName("AMRestoreCreateDefaultOptions"), {
         onEnter(args) {
             log(`[${Tag}]: AMRestoreCreateDefaultOptions`);
         },
         onLeave(retval) {
-            log(`[${Tag}]: AMRestoreCreateDefaultOptions returned: ${PrintCFDictionary(retval)}`);
+            log(`[${Tag}]: AMRestoreCreateDefaultOptions returned= ${CFTypeToUtf8(retval)}`);
         }
     });
     Interceptor.attach(Module.getGlobalExportByName("AMRestorableDeviceCopyDefaultRestoreOptions"), {
@@ -119,7 +124,7 @@ export function MobileDevice(): void {
             log(`[${Tag}]: AMRestorableDeviceCopyDefaultRestoreOptions`);
         },
         onLeave(retval) {
-            log(`[${Tag}]: AMRestorableDeviceCopyDefaultRestoreOptions returned: ${PrintCFDictionary(retval)}`);
+            log(`[${Tag}]: AMRestorableDeviceCopyDefaultRestoreOptions returned: ${CFTypeToUtf8(retval)}`);
         }
     });
     //socket 
