@@ -1,5 +1,5 @@
 import { kPrintSize, log } from "../logger";
-import { CFTypeToUtf8, PrintCFDictionary } from "./CoreFoundationDll";
+import { CFTypeToUtf8, PrintCFDictionary } from "./CoreFoundation";
 
 
 // MobileDevice.dll version=1818.13.1.1

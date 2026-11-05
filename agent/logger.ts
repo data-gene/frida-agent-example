@@ -1,4 +1,4 @@
-export const kPrintSize = 16*10;
+export const kPrintSize = 16*30;
 
 export function log(message: string): void {
     var now = new Date();
